@@ -34,7 +34,7 @@ public class LandmarkDetection extends GoogleVisionBasePlugin {
 	}
 
 	public boolean providesRecoursiveData() {
-		return true;
+		return false;
 	}
 	
 	public Vector<Node> getDetectedNodes() {

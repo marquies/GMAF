@@ -24,11 +24,12 @@ public class Node {
 	
 	public void setName(String n) {
 		name = n;
-		weights.add(new Weight(Context.getDefaultContext(), 1.0f));
+		weights.add(new Weight(Context.getDefaultContext(), 0.5f));
 	}
 	
 	public void addChildNode(Node n) {
 		childNodes.add(n);
+		FeatureVector.allNodes.add(n);
 	}
 	
 	public Vector<Node> getChildNodes() {

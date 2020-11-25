@@ -21,7 +21,7 @@ public class LabelDetection extends GoogleVisionBasePlugin {
 			String txt = annotation.getDescription();
 			System.out.println("LABEL DETECTED: " + txt);
 			Node cn = new Node(txt);
-			cn.addTechnicalAttribute(getBoundingBox(annotation.getBoundingPoly()));
+//			cn.addTechnicalAttribute(getBoundingBox(annotation.getBoundingPoly()));
 			n.addChildNode(cn);
 			cn.setDetectedBy(this.getClass().getName());
 			cn.addCompositionRelationship(new CompositionRelationship(CompositionRelationship.RELATION_PART_OF, n));

@@ -34,40 +34,48 @@ public abstract class GoogleVisionBasePlugin implements FeatureVectorPlugin {
 		return false;
 	}
 	
-	private int width, height;
+	protected int width, height;
 
 	public final void process(URL url, File f, byte[] bytes, FeatureVector fv) {
 		try {
 			BufferedImage img = ImageIO.read(f);
 			width = img.getWidth(null);
 			height = img.getHeight(null);
+			
+			if (width < 200) return;
+			if (height < 200) return;
 		}
 		catch (Exception x) {
 			x.printStackTrace();
 		}
 		try {
 			ImageAnnotatorClient vision = ImageAnnotatorClient.create();
-			ByteString imgBytes = ByteString.copyFrom(bytes);
-			List<AnnotateImageRequest> requests = new ArrayList<AnnotateImageRequest>();
-			Image img = Image.newBuilder().setContent(imgBytes).build();
-
-			Feature feat = getSearchFeature(); // Feature.newBuilder().setType(Type.LABEL_DETECTION).build();
-
-			AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
-			requests.add(request);
-			BatchAnnotateImagesResponse response = vision.batchAnnotateImages(requests);
-			List<AnnotateImageResponse> responses = response.getResponsesList();
-
-			for (AnnotateImageResponse res : responses) {
-				if (res.hasError()) {
-					System.out.format("Error: %s%n", res.getError().getMessage());
-					return;
+			try {
+				ByteString imgBytes = ByteString.copyFrom(bytes);
+				List<AnnotateImageRequest> requests = new ArrayList<AnnotateImageRequest>();
+				Image img = Image.newBuilder().setContent(imgBytes).build();
+	
+				Feature feat = getSearchFeature(); // Feature.newBuilder().setType(Type.LABEL_DETECTION).build();
+	
+				AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
+				requests.add(request);
+				BatchAnnotateImagesResponse response = vision.batchAnnotateImages(requests);
+				List<AnnotateImageResponse> responses = response.getResponsesList();
+	
+				for (AnnotateImageResponse res : responses) {
+					if (res.hasError()) {
+						System.out.format("Error: %s%n", res.getError().getMessage());
+						return;
+					}
+					try {
+						processResult(res, fv);
+					} catch (Exception x) {
+						System.out.println("ERROR processing annotation " + res.toString() + " > " + x.getMessage());
+					}
 				}
-				try {
-					processResult(res, fv);
-				} catch (Exception x) {
-					System.out.println("ERROR processing annotation " + res.toString() + " > " + x.getMessage());
-				}
+			}
+			catch (Exception x) {
+				x.printStackTrace();
 			}
 			vision.close();
 		} catch (Exception x) {

@@ -9,9 +9,12 @@ public class FeatureVector {
 	private Security security;
 	private Vector<Location> locations = new Vector<Location>();
 	private Node currentNode;
+	
+	public static Vector<Node> allNodes = new Vector<Node>();
 
 	public void addNode(Node n) {
 		nodes.add(n);
+		allNodes.add(n);
 	}
 
 	public Vector<Node> getNodes() {

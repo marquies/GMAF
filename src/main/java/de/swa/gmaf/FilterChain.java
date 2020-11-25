@@ -1,12 +1,16 @@
 package de.swa.gmaf;
 
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -44,6 +48,7 @@ public class FilterChain {
 	
 	public void process(URL url, File f, byte[] bytes, FeatureVector fv, int depth) {
 		if (depth < 0) return;
+		System.out.println("DEPTH: " + depth);
 		// process general data
 		for (FeatureVectorPlugin fvp : plugins) {
 			if (fvp.isGeneralPlugin()) fvp.process(url, f, bytes, fv);
@@ -58,39 +63,45 @@ public class FilterChain {
 		catch (Exception x) {}
 		
 		// process details
+		
 		for (FeatureVectorPlugin fvp : plugins) {
 			if (!fvp.isGeneralPlugin()) {
-				if (!fvp.providesRecoursiveData()) fvp.process(url, f, bytes, fv);
-				else {
-					fvp.process(url, f, bytes, fv);
+				fvp.process(url, f, bytes, fv);
+				
+				if (fvp.providesRecoursiveData()) {
 					Vector<Node> nodes = fvp.getDetectedNodes();
+					
 					for (Node n : nodes) {
+						System.out.println("  Node: " + n.getName());
 						fv.setCurrentNode(n);
+						
 						for (TechnicalAttribute ta : n.getTechnicalAttributes()) {
+							String box = (int)(ta.getRelative_x() / 100) * 100 + "" + (int)(ta.getRelative_y() / 100) * 100 + "" + (int)(ta.getWidth() / 100) * 100 + "" + (int)(ta.getHeight() / 100) * 100;
+							
 							try {
-								if (ta.getWidth() == 0) continue;
-								if (ta.getHeight() == 0) continue;
+								if (ta.getWidth() < 80) continue;
+								if (ta.getHeight() < 80) continue;
 								
 								// cut image
 								BufferedImage img = ImageIO.read(f);
-					            BufferedImage out = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_RGB);
-					            BufferedImage section = out.getSubimage(ta.getRelative_x(), ta.getRelative_y(), ta.getWidth(), ta.getHeight());
-								
+					            BufferedImage section = img.getSubimage(ta.getRelative_x(), ta.getRelative_y(), ta.getWidth(), ta.getHeight());
+					            
 					            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					            ImageIO.write(section, "jpg", baos);
 					            baos.flush();
 					            byte[] sectionBytes = baos.toByteArray();
 					            baos.close();
 					            
-//					            FileOutputStream fout = new FileOutputStream(new File("temp/section_" + System.currentTimeMillis()));
-//					            ImageIO.write(section, "jpg", fout);
+					            FileOutputStream fout = new FileOutputStream(new File("temp/section_" + fvp.getClass().getName() + "_" + System.currentTimeMillis() + ".jpg"));
+					            ImageIO.write(section, "jpg", fout);
 					            
 								// reprocess parts of this image
-								FeatureVector newImg = new ApiFacade().processImage(sectionBytes, "section.jpg", "tmp", depth --);
+					            System.out.println("   reprocessing TA " + ta.getWidth() + " " + ta.getHeight());
+								FeatureVector newImg = new ApiFacade().processImage(sectionBytes, "section.jpg", "tmp", depth--);
 								FeatureVectorBuilder.mergeIntoFeatureVector(fv, newImg);
 							}
 							catch (Exception x) {
-//								x.printStackTrace();
+								x.printStackTrace();
 							}
 						}
 					}

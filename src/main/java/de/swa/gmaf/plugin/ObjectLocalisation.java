@@ -14,6 +14,7 @@ import de.swa.mfv.CompositionRelationship;
 import de.swa.mfv.FeatureVector;
 import de.swa.mfv.Node;
 import de.swa.mfv.SemanticRelationship;
+import de.swa.mfv.TechnicalAttribute;
 
 public class ObjectLocalisation extends GoogleVisionBasePlugin {
 	private Vector<Node> objects = new Vector<Node>();
@@ -24,6 +25,7 @@ public class ObjectLocalisation extends GoogleVisionBasePlugin {
 	}
 
 	protected void processResult(AnnotateImageResponse res, FeatureVector fv) {
+		objects = new Vector<Node>();
 		int counter = 1;
 		for (LocalizedObjectAnnotation annotation : res.getLocalizedObjectAnnotationsList()) {
 			Node n = fv.getCurrentNode();
@@ -40,8 +42,16 @@ public class ObjectLocalisation extends GoogleVisionBasePlugin {
 			}
 			
 			Node cn = new Node(txt);
-			System.out.println("Node " + txt);
-			cn.addTechnicalAttribute(getBoundingBox(annotation.getBoundingPoly()));
+			TechnicalAttribute ta = getBoundingBox(annotation.getBoundingPoly());
+			
+			// check, if bounding box is similar to whole image
+			if (ta.getRelative_x() < 30 && ta.getRelative_y() < 30 && (width - ta.getWidth()) < 60 && (height - ta.getHeight()) < 60) {
+				System.out.println("simmilar bounding box");
+			}
+			else {
+				cn.addTechnicalAttribute(ta);
+			}
+			
 			n.addChildNode(cn);
 			objects.add(cn); 
 			cn.setDetectedBy(this.getClass().getName());

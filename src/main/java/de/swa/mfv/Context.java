@@ -1,8 +1,11 @@
 package de.swa.mfv;
 
 import java.util.UUID;
+import java.util.Vector;
 
 public class Context {
+	public static Vector<Context> allContexts = new Vector<Context>();
+	
 	private String name;
 	private UUID id;
 	
@@ -26,9 +29,14 @@ public class Context {
 	}
 	
 	public static Context getDefaultContext() {
+		if (allContexts.size() > 0) {
+			for (Context c : allContexts) {
+				if (c.getName().equals("Default")) return c;
+			}
+		}
 		Context c = new Context(UUID.randomUUID(), "Default");
+		allContexts.add(c);
 		return c;
-	}
-	
+	}	
 	
 }

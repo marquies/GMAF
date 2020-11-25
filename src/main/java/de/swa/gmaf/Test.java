@@ -3,6 +3,7 @@ package de.swa.gmaf;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
+import de.swa.gc.GraphCodeGenerator;
 import de.swa.mfv.FeatureVector;
 import de.swa.mfv.builder.FeatureVectorBuilder;
 import de.swa.mfv.builder.GraphMLFlattener;
@@ -23,25 +24,23 @@ public class Test {
 		String s = "";
 		
 		FeatureVector fv = FeatureVectorBuilder.unflatten(content, new XMLEncodeDecode());
-//		System.out.println(FeatureVectorBuilder.flatten(fv, new JsonFlattener()));
-//		String path = FeatureVectorBuilder.flatten(fv, new ImageFlattener());
-//		Runtime.getRuntime().exec("open " + path);
-//
-//		if (true) return;
 		ApiFacade af = new ApiFacade();
 		
-//		String testFile = "Strand-Gardasee.jpg";
-//		FileInputStream fs = new FileInputStream("/Users/stefan_wagenpfeil/Desktop/DSC_8961_2.jpg");
-//		byte[] bytes = fs.readAllBytes();
-//		fv = af.processImage(bytes, testFile, "sw", 2);
-//		
-//		s = FeatureVectorBuilder.flatten(fv, new GraphMLFlattener());
+		String testFile = "Rome.jpg";
+		FileInputStream fs = new FileInputStream("Rome.jpg");
+		byte[] bytes = fs.readAllBytes();
+		fv = af.processImage(bytes, testFile, "sw", 2);
 		
-//		rf = new RandomAccessFile("graph.graphml", "rw");
-//		rf.setLength(0);
-//		rf.writeBytes(s);
-//		rf.close();
-//		
+		s = FeatureVectorBuilder.flatten(fv, new GraphMLFlattener());
+		
+		rf = new RandomAccessFile("graph.graphml", "rw");
+		rf.setLength(0);
+		rf.writeBytes(s);
+		rf.close();
+		
+		s = FeatureVectorBuilder.flatten(fv, new GraphCodeGenerator());
+//		if (true) return;
+
 		s = FeatureVectorBuilder.flatten(fv,  new JsonFlattener());
 		rf = new RandomAccessFile("graph.json", "rw");
 		rf.setLength(0);
